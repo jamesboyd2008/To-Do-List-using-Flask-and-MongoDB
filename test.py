@@ -7,8 +7,8 @@ db = client.camp2016    #Select the database
 todos = db.todo #Select the collection
 
 app = Flask(__name__)
-title = "TODO with Flask"
-heading = "ToDo Reminder"
+title = "MongoDB ToDo List"
+heading = "MongoDB ToDo List"
 #modify=ObjectId()
 
 def redirect_url():
@@ -112,5 +112,3 @@ def about():
 if __name__ == "__main__":
     app.run(debug=True)
 # Careful with the debug mode..
-
-
