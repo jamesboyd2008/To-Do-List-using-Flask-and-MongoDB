@@ -114,8 +114,7 @@ def about():
 
 if __name__ == "__main__":
     # app.run(debug=True) # Careful with the debug mode..
-    app.run(debug=False) # Careful with the debug mode..
-    # app.run(host='0.0.0.0', debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=5000)
     # WSGIServer(('0.0.0.0', 5000), app).serve_forever()
     # serve(app, host='0.0.0.0', port=5000)
     # print('Serving on port 5000...')
