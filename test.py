@@ -1,7 +1,9 @@
 from flask import Flask, render_template,request,redirect,url_for # For flask implementation
 from pymongo import MongoClient # Database connector
 from bson.objectid import ObjectId # For ObjectId to work
-from gevent.pywsgi import WSGIServer # to serve_forever
+# from gevent.pywsgi import WSGIServer # to serve_forever
+# from waitress import serve
+
 
 client = MongoClient('localhost', 27017)    #Configure the connection to the database
 db = client.camp2016    #Select the database
@@ -111,8 +113,9 @@ def about():
 	return render_template('credits.html',t=title,h=heading)
 
 if __name__ == "__main__":
-    # app.run(debug=True)
+    # app.run(debug=True) # Careful with the debug mode..
+    app.run(debug=False) # Careful with the debug mode..
     # app.run(host='0.0.0.0', debug=True, port=5000)
-    # Careful with the debug mode..
-    print('Serving on port 5000...')
-    WSGIServer(('0.0.0.0', 5000), app).serve_forever()
+    # WSGIServer(('0.0.0.0', 5000), app).serve_forever()
+    # serve(app, host='0.0.0.0', port=5000)
+    # print('Serving on port 5000...')
