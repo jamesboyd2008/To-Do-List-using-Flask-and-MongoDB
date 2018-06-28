@@ -38,6 +38,7 @@ def main():
     sometime_hawaii = datetime.datetime.\
     strptime("2018-06-27 12:34:25", "%Y-%m-%d %H:%M:%S")
 
+    # account for timezone difference
     est_minus_hst_minus_dst = sometime_east_coast - sometime_hawaii
 
     # this is 10 hours slow
