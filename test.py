@@ -7,16 +7,28 @@ from pymongo import MongoClient # Database connector
 # from wtforms import TextField, HiddenField, ValidationError, RadioField,\
     # BooleanField, SubmitField, IntegerField, FormField, validators
 # from wtforms.validators import Required
+import time
+import datetime
+import plotly
+import pymongo
+from plotly.graph_objs import Layout, Scatter
+
+
+
 
 client = MongoClient('localhost', 27017)    #Configure the connection to the database
-db = client.camp2016    #Select the database
-todos = db.todo #Select the collection
+# db = client.camp2016    #Select the database
+# todos = db.todo #Select the collection
+todos = []
+db = client.btc2
+collection = db['ticks']
+attributes = ['eth', 'btc']
+
 
 app = Flask(__name__)
 # Bootstrap(app)
-title = "MongoDB ToDo List"
-heading = "MongoDB ToDo List"
-attributes = ["LO", "IF", "plasmaBeams", "ShockWaves"]
+title = "MongoDB Demo"
+heading = "MongoDB Demo"
 #modify=ObjectId()
 
 
@@ -27,96 +39,147 @@ def redirect_url():
 
 @app.route("/list")
 def lists ():
-	#Display the all Tasks
-	todos_l = todos.find()
-	a1="active"
-	return render_template('index.html',a1=a1,todos=todos_l,t=title,h=heading)
+    #Display the all Tasks
+    # todos_l = todos.find()
+    a1="active"
+    attributes = ['eth', 'btc']
+    # return render_template('index.html',a1=a1,todos=todos_l,t=title,h=heading,attributes=attributes)
+    return render_template('index.html',a1=a1,t=title,h=heading,attributes=attributes)
 
 @app.route("/")
 @app.route("/uncompleted")
 def tasks ():
-	#Display the Uncompleted Tasks
-	todos_l = todos.find({"done":"no"})
-	a2="active"
-	return render_template('index.html',a2=a2,todos=todos_l,t=title,h=heading)
-
-
-@app.route("/completed")
-def completed ():
-	#Display the Completed Tasks
-	todos_l = todos.find({"done":"yes"})
-	a3="active"
-	return render_template('index.html',a3=a3,todos=todos_l,t=title,h=heading)
-
-@app.route("/done")
-def done ():
-	#Done-or-not ICON
-	id=request.values.get("_id")
-	task=todos.find({"_id":ObjectId(id)})
-	if(task[0]["done"]=="yes"):
-		todos.update({"_id":ObjectId(id)}, {"$set": {"done":"no"}})
-	else:
-		todos.update({"_id":ObjectId(id)}, {"$set": {"done":"yes"}})
-	redir=redirect_url()	# Re-directed URL i.e. PREVIOUS URL from where it came into this one
-
-#	if(str(redir)=="http://localhost:5000/search"):
-#		redir+="?key="+id+"&refer="+refer
-
-	return redirect(redir)
-
-#@app.route("/add")
-#def add():
-#	return render_template('add.html',h=heading,t=title)
-
-@app.route("/action", methods=['POST'])
-def action ():
-	#Adding a Task
-	name=request.values.get("name")
-	desc=request.values.get("desc")
-	date=request.values.get("date")
-	pr=request.values.get("pr")
-	todos.insert({ "name":name, "desc":desc, "date":date, "pr":pr, "done":"no"})
-	return redirect("/list")
-
-@app.route("/remove")
-def remove ():
-	#Deleting a Task with various references
-	key=request.values.get("_id")
-	todos.remove({"_id":ObjectId(key)})
-	return redirect("/")
-
-@app.route("/update")
-def update ():
-	id=request.values.get("_id")
-	task=todos.find({"_id":ObjectId(id)})
-	return render_template('update.html',tasks=task,h=heading,t=title)
-
-@app.route("/action3", methods=['POST'])
-def action3 ():
-	#Updating a Task with various references
-	name=request.values.get("name")
-	desc=request.values.get("desc")
-	date=request.values.get("date")
-	pr=request.values.get("pr")
-	id=request.values.get("_id")
-	todos.update({"_id":ObjectId(id)}, {'$set':{ "name":name, "desc":desc, "date":date, "pr":pr }})
-	return redirect("/")
+    #Display the Uncompleted Tasks
+    # todos_l = todos.find({"done":"no"})
+    a2="active"
+    # return render_template('index.html',a2=a2,todos=todos_l,t=title,h=heading)
+    return render_template('index.html',a2=a2,attributes=attributes,t=title,h=heading)
 
 @app.route("/search", methods=['GET'])
 def search():
-	#Searching a Task with various references
+    #Searching a Task with various references
+    begin = request.values.get("begin")
+    end = request.values.get("end")
+    attribute = request.values.get("refer")
+    # if(key=="_id"):
+    # 	todos_l = todos.find({refer:ObjectId(key)})
+    # else:
+    # 	todos_l = todos.find({refer:key})
 
-	key=request.values.get("key")
-	refer=request.values.get("refer")
-	if(key=="_id"):
-		todos_l = todos.find({refer:ObjectId(key)})
-	else:
-		todos_l = todos.find({refer:key})
-	return render_template('searchlist.html',todos=todos_l,t=title,h=heading)
+    eth_last_price = []
+    eth_best_bid = []
+    eth_best_ask = []
+    eth_timestamp = []
+
+    btc_last_price = []
+    btc_best_bid = []
+    btc_best_ask = []
+    btc_timestamp = []
+
+    client = pymongo.MongoClient('localhost', 27017)
+    db = client.btc2
+    collection = db['ticks']
+
+    # get beginning and end of date range of interest
+    sometime_east_coast = datetime.datetime.\
+    strptime("2018-06-27 18:34:25", "%Y-%m-%d %H:%M:%S")
+
+    sometime_hawaii = datetime.datetime.\
+    strptime("2018-06-27 12:34:25", "%Y-%m-%d %H:%M:%S")
+
+    # account for timezone difference
+    est_minus_hst_minus_dst = sometime_east_coast - sometime_hawaii
+
+    # this is 10 hours slow
+    begin = datetime.datetime.\
+    strptime(begin, "%Y-%m-%d %H:%M:%S")
+    # strptime("2018-06-28 08:32:00", "%Y-%m-%d %H:%M:%S")
+
+    # this is 10 hours slow
+    end = datetime.datetime.\
+    strptime(end, "%Y-%m-%d %H:%M:%S")
+    # end = datetime.datetime.now() + est_minus_hst_minus_dst
+    print(f"attribute: {attribute}")
+    if (attribute == "eth"):
+        try:
+            for rec in collection.find({"instrument":"ETH"}):
+                eth_ts = datetime.datetime.fromtimestamp(rec['timestamp'])
+                if (eth_ts >= begin) and (eth_ts <= end):
+                    eth_last_price.append(rec['lastPrice'])
+                    eth_best_bid.append(rec['bestBid'])
+                    eth_best_ask.append(rec['bestAsk'])
+                    eth_timestamp.append(eth_ts)
+        except Exception as err:
+            print(err)
+
+        attribute_lp = Scatter(
+            y=eth_last_price,
+            x=eth_timestamp,
+            name='ETH Last Price',
+            mode='lines+markers')
+
+        attribute_bb = Scatter(
+            y=eth_best_bid,
+            x=eth_timestamp,
+            name='ETH Best Bid',
+            mode='lines+markers')
+
+        attribute_ba = Scatter(
+            y=eth_best_ask,
+            x=eth_timestamp,
+            name='ETH Best Ask',
+            mode='lines+markers')
+
+
+
+    elif (attribute == "btc"):
+        # Because of the price difference between Etherum and Bitcoin
+        # Divide Bitcon prices by 10 to make the graph nicer
+        try:
+            for rec in collection.find({"instrument":"BTC"}):
+                btc_ts = datetime.datetime.fromtimestamp(rec['timestamp'])
+                if (btc_ts >= begin) and (btc_ts <= end):
+                    btc_last_price.append(rec['lastPrice'] / 10)
+                    btc_best_bid.append(rec['bestBid'] / 10)
+                    btc_best_ask.append(rec['bestAsk'] / 10)
+                    btc_timestamp.append(btc_ts)
+        except Exception as err:
+            print(err)
+
+        attribute_lp = Scatter(
+            y=btc_last_price,
+            x=btc_timestamp,
+            name='BTC Last Price minus 10^1',
+            mode='lines+markers')
+
+        attribute_bb = Scatter(
+            y=btc_best_bid,
+            x=btc_timestamp,
+            name='BTC Best Bid minus 10^1',
+            mode='lines+markers')
+
+        attribute_ba = Scatter(
+            y=btc_best_ask,
+            x=btc_timestamp,
+            name='BTC Best Ask minus 10^1',
+            mode='lines+markers')
+
+    title = attribute + " Markets Graph"
+    plotly.offline.plot(
+        {
+            # 'data': [eth_lp, eth_bb, eth_ba, btc_lp, btc_bb, btc_ba],
+            # 'data': [btc_lp, btc_bb, btc_ba],
+            'data': [attribute_lp, attribute_bb, attribute_ba],
+            'layout': Layout(title = title)},
+        filename=r"btc.html", auto_open=True)
+
+    # return render_template('searchlist.html',todos=todos,t=title,h=heading)
+    a1 = "active"
+    return render_template('index.html',a1=a1,t=title,h=heading,attributes=attributes)
 
 @app.route("/about")
 def about():
-	return render_template('credits.html',t=title,h=heading)
+    return render_template('credits.html',t=title,h=heading)
 
 if __name__ == "__main__":
     # app.run(debug=True) # Careful with the debug mode..
