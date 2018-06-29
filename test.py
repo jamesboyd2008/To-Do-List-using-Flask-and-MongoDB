@@ -1,15 +1,24 @@
-from flask import Flask, render_template,request,redirect,url_for # For flask implementation
-from pymongo import MongoClient # Database connector
 from bson.objectid import ObjectId # For ObjectId to work
+from flask import Flask, render_template,request,redirect,url_for # For flask implementation
+# from flask_bootstrap import Bootstrap
+# from flask_wtf import FlaskForm
+# from flask_wtf.file import FileField
+from pymongo import MongoClient # Database connector
+# from wtforms import TextField, HiddenField, ValidationError, RadioField,\
+    # BooleanField, SubmitField, IntegerField, FormField, validators
+# from wtforms.validators import Required
 
 client = MongoClient('localhost', 27017)    #Configure the connection to the database
 db = client.camp2016    #Select the database
 todos = db.todo #Select the collection
 
 app = Flask(__name__)
+# Bootstrap(app)
 title = "MongoDB ToDo List"
 heading = "MongoDB ToDo List"
+attributes = ["LO", "IF", "plasmaBeams", "ShockWaves"]
 #modify=ObjectId()
+
 
 def redirect_url():
     return request.args.get('next') or \
