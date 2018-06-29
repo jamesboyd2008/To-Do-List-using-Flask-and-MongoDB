@@ -13,9 +13,6 @@ import plotly
 import pymongo
 from plotly.graph_objs import Layout, Scatter
 
-
-
-
 client = MongoClient('localhost', 27017)    #Configure the connection to the database
 # db = client.camp2016    #Select the database
 # todos = db.todo #Select the collection
@@ -36,15 +33,6 @@ def redirect_url():
     return request.args.get('next') or \
            request.referrer or \
            url_for('index')
-
-@app.route("/list")
-def lists ():
-    #Display the all Tasks
-    # todos_l = todos.find()
-    a1="active"
-    attributes = ['eth', 'btc']
-    # return render_template('index.html',a1=a1,todos=todos_l,t=title,h=heading,attributes=attributes)
-    return render_template('index.html',a1=a1,t=title,h=heading,attributes=attributes)
 
 @app.route("/")
 @app.route("/uncompleted")
@@ -176,10 +164,6 @@ def search():
     # return render_template('searchlist.html',todos=todos,t=title,h=heading)
     a1 = "active"
     return render_template('index.html',a1=a1,t=title,h=heading,attributes=attributes)
-
-@app.route("/about")
-def about():
-    return render_template('credits.html',t=title,h=heading)
 
 if __name__ == "__main__":
     # app.run(debug=True) # Careful with the debug mode..
