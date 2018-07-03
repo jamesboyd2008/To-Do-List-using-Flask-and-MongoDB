@@ -14,6 +14,7 @@ def mongo_insert(rec):
     """
 
     client = pymongo.MongoClient('localhost', 27017)
+    # client = pymongo.MongoClient("mongodb://james:HqXkxESZWWq9@18.191.185.76/btc2", 27017)
     db = client.btc2
     collection = db['ticks']
 
